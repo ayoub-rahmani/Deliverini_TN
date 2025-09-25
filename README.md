@@ -1,6 +1,6 @@
-# Delivrini_TN
+# Deliverini_TN
 
-Delivrini_TN is a modern mobile application developed using Flutter and Dart, integrated with Firebase for backend services. It offers a seamless meal ordering experience with live messaging capabilities for real-time communication between clients and delivery personnel. The app features secure user authentication, dynamic meal customization, order management, push notifications, and responsive UI optimized for mobile devices.
+Deliverini_TN is a modern mobile application developed using Flutter and Dart, integrated with Firebase for backend services. It offers a seamless meal ordering experience with live messaging capabilities for real-time communication between clients and delivery personnel. The app features secure user authentication, dynamic meal customization, order management, push notifications, and responsive UI optimized for mobile devices.
 
 ## Features
 
@@ -14,7 +14,7 @@ Delivrini_TN is a modern mobile application developed using Flutter and Dart, in
 
 ## Getting Started
 
-Follow the steps below to set up and run Delivrini_TN on your local machine.
+Follow the steps below to set up and run Deliverini_TN on your local machine.
 
 ### Prerequisites
 
@@ -27,7 +27,7 @@ Follow the steps below to set up and run Delivrini_TN on your local machine.
 
 1. Clone this repository:
 
-    git clone https://github.com/ayoub-rahmani/Delivrini_TN.git cd Delivrini_TN
+    git clone https://github.com/ayoub-rahmani/Deliverini_TN.git cd Deliverini_TN
 
 2. Install Flutter dependencies:
 
