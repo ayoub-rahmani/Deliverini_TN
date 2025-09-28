@@ -10,8 +10,9 @@ class AuthService {
 
   // Cache preferences instance
   static SharedPreferences? _prefs;
-  static final ValueNotifier<bool> authStateNotifier = ValueNotifier<bool>(isLoggedIn);
 
+  // Initialize with false, will be updated during autoLogin
+  static final ValueNotifier<bool> authStateNotifier = ValueNotifier<bool>(false);
 
   // Cache frequently used collections
   static final _usersCollection = _firestore.collection('users');
@@ -139,11 +140,15 @@ class AuthService {
         await _saveLoginState(userDoc.id, userType);
       }
 
+      // Update auth state notifier
+      authStateNotifier.value = true;
+
       print('✅ User signed up: $trimmedName ($userType)');
       return true;
     } catch (e) {
       print('❌ Sign up error: $e');
       _currentUser = null;
+      authStateNotifier.value = false;
       rethrow;
     }
   }
@@ -212,11 +217,15 @@ class AuthService {
         await _saveLoginState(userId, _currentUser!.userType);
       }
 
+      // Update auth state notifier
+      authStateNotifier.value = true;
+
       print('✅ User logged in: ${_currentUser!.name} (${_currentUser!.userType})');
       return true;
     } catch (e) {
       print('❌ Login error: $e');
       _currentUser = null;
+      authStateNotifier.value = false;
       rethrow;
     }
   }
@@ -227,12 +236,16 @@ class AuthService {
       await _initPrefs();
       final savedUserId = _prefs!.getString('remembered_user_id');
 
-      if (savedUserId == null) return false;
+      if (savedUserId == null) {
+        authStateNotifier.value = false;
+        return false;
+      }
 
       // Get user data
       final userDoc = await _usersCollection.doc(savedUserId).get();
       if (!userDoc.exists) {
         await _clearLoginState();
+        authStateNotifier.value = false;
         return false;
       }
 
@@ -247,18 +260,26 @@ class AuthService {
       // Initialize notifications
       await _initializeNotifications();
 
+      // Update auth state notifier
+      authStateNotifier.value = true;
+
       print('✅ Auto login successful: ${_currentUser!.name} (${_currentUser!.userType})');
       return true;
     } catch (e) {
       print('❌ Auto login error: $e');
       await _clearLoginState();
       _currentUser = null;
+      authStateNotifier.value = false;
       return false;
     }
   }
 
   // Logout
   static Future<void> logout() async {
+    print('🚪 Starting logout process...');
+    print('Current user before logout: ${_currentUser?.name ?? 'null'}');
+    print('Auth notifier value before: ${authStateNotifier.value}');
+
     try {
       if (_currentUser != null) {
         // Clear FCM token
@@ -275,13 +296,25 @@ class AuthService {
         });
       }
 
+      // Clear user data and state
+      _currentUser = null;
       await _clearLoginState();
-      _currentUser = null;
-      authStateNotifier.value = false; // <== Notifies listeners
-      print('🚪 User logged out');
+
+      // Update auth state notifier
+      authStateNotifier.value = false;
+
+      print('Current user after logout: ${_currentUser?.name ?? 'null'}');
+      print('Auth notifier value after: ${authStateNotifier.value}');
+      print('🚪 User logged out successfully');
+
     } catch (e) {
+      print('❌ Logout error: $e');
+      // Even if there's an error, clear the local state
       _currentUser = null;
-      authStateNotifier.value = false; // <== Notifies on exception as well
+      await _clearLoginState();
+      authStateNotifier.value = false;
+
+      print('Auth notifier value after error: ${authStateNotifier.value}');
     }
   }
 
@@ -306,6 +339,8 @@ class AuthService {
       await Future.wait([
         _prefs!.remove('remembered_user_id'),
         _prefs!.remove('remembered_user_type'),
+        // Clear all shared preferences to be extra safe
+        _prefs!.clear(),
       ]);
       print('🗑️ Login state cleared');
     } catch (e) {

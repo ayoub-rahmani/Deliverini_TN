@@ -101,7 +101,6 @@ class _DeliverySelectionPageState extends State<DeliverySelectionPage>
     });
 
     try {
-      // First, find the document by orderId field instead of document ID
       final orderQuery = await FirebaseFirestore.instance
           .collection('orders')
           .where('orderId', isEqualTo: widget.orderId)
@@ -111,7 +110,6 @@ class _DeliverySelectionPageState extends State<DeliverySelectionPage>
         throw Exception('Order not found');
       }
 
-      // Update the found document
       await orderQuery.docs.first.reference.update({
         'assignedDeliveryId': deliveryPersonId,
         'assignedDeliveryName': deliveryPersonName,
@@ -140,7 +138,7 @@ class _DeliverySelectionPageState extends State<DeliverySelectionPage>
         Navigator.of(context).pop();
       }
     } catch (e) {
-      print('Error assigning delivery person: $e'); // Add this for debugging
+      print('Error assigning delivery person: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -155,6 +153,7 @@ class _DeliverySelectionPageState extends State<DeliverySelectionPage>
       }
     }
   }
+
   Future<void> _closePanel() async {
     if (_isAssigning) return;
     await _controller.reverse();
@@ -166,105 +165,267 @@ class _DeliverySelectionPageState extends State<DeliverySelectionPage>
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    const panelWidth = 0.65;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final statusBarHeight = MediaQuery.of(context).viewPadding.top;
+    final bottomPadding = MediaQuery.of(context).viewPadding.bottom;
+
+    // Better proportional width - 70% for tablets, 80% for phones
+    final panelWidth = screenWidth > 600 ? 0.7 : 0.8;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // Background overlay - ONLY fades
+          // Background overlay with better opacity
           FadeTransition(
             opacity: _controller,
             child: GestureDetector(
               onTap: _closePanel,
               child: Container(
-                color: Colors.black54,
+                color: Colors.black.withOpacity(0.6),
                 width: double.infinity,
                 height: double.infinity,
               ),
             ),
           ),
 
-          // Panel - ONLY slides from right
+          // Panel with improved positioning
           SlideTransition(
             position: Tween<Offset>(
               begin: const Offset(1.0, 0.0),
               end: Offset.zero,
-            ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut)),
+            ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic)),
             child: Align(
               alignment: Alignment.centerRight,
               child: Container(
                 width: screenWidth * panelWidth,
-                height: double.infinity,
+                height: screenHeight,
                 decoration: const BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(30)),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(25),
+                    bottomLeft: Radius.circular(25),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 20,
+                      spreadRadius: 0,
+                      offset: Offset(-5, 0),
+                    ),
+                  ],
                 ),
                 child: Column(
                   children: [
-                    // Header
+                    // Clean, minimal header
                     Container(
-                      padding: const EdgeInsets.fromLTRB(20, 45, 20, 12),
+                      padding: EdgeInsets.fromLTRB(
+                          20,
+                          statusBarHeight + 24,
+                          20,
+                          24
+                      ),
                       decoration: const BoxDecoration(
-                        color: Colors.orange,
-                        borderRadius: BorderRadius.only(topLeft: Radius.circular(30)),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(25),
+                        ),
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Color(0xFFF5F5F5),
+                            width: 1,
+                          ),
+                        ),
                       ),
                       child: Row(
                         children: [
+                          // Close button
+                          GestureDetector(
+                            onTap: _closePanel,
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.black87,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(width: 16),
+
+                          // Icon and title
                           Container(
-                            padding: const EdgeInsets.all(8),
+                            width: 36,
+                            height: 36,
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(8),
+                              color: Colors.orange,
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Icon(
                               Icons.delivery_dining,
                               color: Colors.white,
-                              size: 22,
+                              size: 20,
                             ),
                           ),
+
+                          const SizedBox(width: 12),
+
                           const Expanded(
-                            child: Text(
-                              'اختر عامل التوصيل',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: 'NotoSansArabic',
-                              ),
-                              textAlign: TextAlign.center,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'اختيار عامل التوصيل',
+                                  style: TextStyle(
+                                    color: Colors.black87,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    fontFamily: 'NotoSansArabic',
+                                    height: 1.2,
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  'اختر الأنسب لتوصيل طلبك',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 13,
+                                    fontFamily: 'NotoSansArabic',
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 38), // Balance the delivery icon
                         ],
                       ),
                     ),
 
-                    // Content
+                    // Content area with better spacing
                     Expanded(
-                      child: _isLoading
-                          ? const Center(child: CircularProgressIndicator(color: Colors.black))
-                          : _deliveryPersons.isEmpty
-                          ? const Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: _isLoading
+                            ? const Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircularProgressIndicator(
+                                color: Colors.orange,
+                                strokeWidth: 3,
+                              ),
+                              SizedBox(height: 16),
+                              Text(
+                                'جاري تحميل عمال التوصيل...',
+                                style: TextStyle(
+                                  fontFamily: 'NotoSansArabic',
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                            : _deliveryPersons.isEmpty
+                            ? Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade100,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.person_off_outlined,
+                                  color: Colors.grey.shade400,
+                                  size: 40,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'لا يوجد عمال توصيل متاحون',
+                                style: TextStyle(
+                                  fontFamily: 'NotoSansArabic',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'يرجى المحاولة مرة أخرى لاحقاً',
+                                style: TextStyle(
+                                  fontFamily: 'NotoSansArabic',
+                                  fontSize: 14,
+                                  color: Colors.grey.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                            : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(Icons.person_off, color: Colors.grey, size: 40),
-                            SizedBox(height: 12),
-                            Text(
-                              'لا يوجد عمال توصيل متاحون',
-                              style: TextStyle(fontFamily: 'NotoSansArabic', fontSize: 14),
+                            // Instructions section
+                            Container(
+                              margin: const EdgeInsets.fromLTRB(0, 24, 0, 16),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.withOpacity(0.08),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.orange.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(
+                                    Icons.info_outline,
+                                    color: Colors.orange,
+                                    size: 20,
+                                  ),
+                                  SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      'اختر عامل التوصيل المفضل لتوصيل طلبك',
+                                      style: TextStyle(
+                                        fontFamily: 'NotoSansArabic',
+                                        fontSize: 13,
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Delivery persons list
+                            Expanded(
+                              child: ListView.separated(
+                                physics: const BouncingScrollPhysics(),
+                                itemCount: _deliveryPersons.length,
+                                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                                itemBuilder: _buildDeliveryPersonItem,
+                              ),
                             ),
                           ],
                         ),
-                      )
-                          : ListView.separated(
-                        padding: const EdgeInsets.all(12),
-                        itemCount: _deliveryPersons.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 8),
-                        itemBuilder: _buildDeliveryPersonItem,
                       ),
                     ),
+
+                    // Bottom safe area
+                    SizedBox(height: bottomPadding + 20),
                   ],
                 ),
               ),
@@ -282,44 +443,70 @@ class _DeliverySelectionPageState extends State<DeliverySelectionPage>
 
     return GestureDetector(
       onTap: _isAssigning ? null : () => _assignDeliveryPerson(person['id'], person['name']),
-      child: Container(
-        padding: const EdgeInsets.all(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected ? Colors.orange.withOpacity(0.1) : Colors.white,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? Colors.orange : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: isSelected
+                  ? Colors.orange.withOpacity(0.2)
+                  : Colors.grey.withOpacity(0.1),
+              blurRadius: isSelected ? 8 : 4,
+              spreadRadius: 0,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
-            // Avatar with online indicator
+            // Enhanced avatar with online indicator
             Stack(
               children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundImage: AssetImage(person['profileImage']),
-                  backgroundColor: Colors.grey.shade200,
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isOnline ? Colors.green : Colors.grey.shade300,
+                      width: 2,
+                    ),
+                  ),
+                  child: CircleAvatar(
+                    radius: 28,
+                    backgroundImage: AssetImage(person['profileImage']),
+                    backgroundColor: Colors.grey.shade200,
+                  ),
                 ),
                 if (isOnline)
                   Positioned(
-                    bottom: 1,
-                    right: 1,
+                    bottom: 2,
+                    right: 2,
                     child: Container(
-                      width: 10,
-                      height: 10,
+                      width: 16,
+                      height: 16,
                       decoration: BoxDecoration(
                         color: Colors.green,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 1.5),
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: const Icon(
+                        Icons.circle,
+                        color: Colors.green,
+                        size: 8,
                       ),
                     ),
                   ),
               ],
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 16),
 
-            // Info
+            // Enhanced info section
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -327,51 +514,118 @@ class _DeliverySelectionPageState extends State<DeliverySelectionPage>
                   Text(
                     person['name'],
                     style: const TextStyle(
-                      fontSize: 14,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                       fontFamily: 'NotoSansArabic',
+                      color: Colors.black87,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 6),
+
+                  // Status and stats row
                   Row(
                     children: [
-                      const Icon(Icons.star, color: Colors.orange, size: 12),
-                      const SizedBox(width: 2),
-                      Text(
-                        person['rating'].toStringAsFixed(1),
-                        style: const TextStyle(fontSize: 11, fontFamily: 'Poppins'),
+                      // Online/Offline status
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: isOnline ? Colors.green.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          isOnline ? 'متاح' : 'غير متاح',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontFamily: 'NotoSansArabic',
+                            color: isOnline ? Colors.green : Colors.grey,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${person['completedOrders']}',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontFamily: 'Poppins',
-                          color: Colors.grey,
+                      const SizedBox(width: 12),
+
+                      // Rating
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.star, color: Colors.orange, size: 12),
+                            const SizedBox(width: 2),
+                            Text(
+                              person['rating'].toStringAsFixed(1),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontFamily: 'Poppins',
+                                fontWeight: FontWeight.w600,
+                                color: Colors.orange,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  // Completed orders
+                  Text(
+                    '${person['completedOrders']} طلب مكتمل',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontFamily: 'NotoSansArabic',
+                      color: Colors.grey.shade600,
+                    ),
                   ),
                 ],
               ),
             ),
 
-            // Status indicator
-            if (isSelected && _isAssigning)
-              const SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(strokeWidth: 1.5, color: Colors.orange),
-              )
-            else if (isSelected)
-              const Icon(Icons.check_circle, color: Colors.orange, size: 18)
-            else
-              const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 12),
+            // Enhanced status indicator
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.orange : Colors.grey.shade100,
+                shape: BoxShape.circle,
+              ),
+              child: _buildStatusIcon(isSelected),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildStatusIcon(bool isSelected) {
+    if (isSelected && _isAssigning) {
+      return const SizedBox(
+        width: 18,
+        height: 18,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: Colors.white,
+        ),
+      );
+    } else if (isSelected) {
+      return const Icon(
+        Icons.check,
+        color: Colors.white,
+        size: 20,
+      );
+    } else {
+      return Icon(
+        Icons.arrow_forward_ios,
+        color: Colors.grey.shade400,
+        size: 16,
+      );
+    }
   }
 }

@@ -30,12 +30,12 @@ class _MealCustomizationPageState extends State<MealCustomizationPage> {
   final List<String> _availableIngredients = [
     'بصل',
     'هريسة',
-    'طحينة',
-    'خيار مخلل',
+    'مايوناز',
+    'خيار',
     'طماطم',
     'خس',
     'جزر مبشور',
-    'فلفل حار',
+    'ملح',
   ];
 
   @override

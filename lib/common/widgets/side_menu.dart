@@ -97,27 +97,10 @@ class SideMenu extends StatelessWidget {
 
     HapticFeedback.heavyImpact();
 
+    // Just call logout - the AuthWrapper will handle navigation automatically
     await AuthService.logout();
-    if (!context.mounted) return;
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const AuthPage()),
-          (route) => false,
-    );
 
-
-    Navigator.pushAndRemoveUntil(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, _) => FadeTransition(
-          opacity: animation,
-          child: const AuthPage(),
-        ),
-        transitionDuration: const Duration(milliseconds: 300),
-        settings: const RouteSettings(name: '/auth'),
-      ),
-          (route) => false,
-    );
+    print('✅ Logout completed - AuthWrapper will handle navigation');
   }
 
   @override

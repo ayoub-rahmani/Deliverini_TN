@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:app3/device/deviceutils.dart';
 
+import '../common/slide_notif.dart';
 import 'meal_customization_page.dart'; // Import the customization page
 
 class MealDetailsPopup {
@@ -139,15 +140,10 @@ class _MealDetailsContentState extends State<MealDetailsContent> {
 
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'تمت إضافة الوجبة إلى السلة',
-              style: TextStyle(fontFamily: 'NotoSansArabic'),
-            ),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
+        ToastService.success(
+          context,
+          'تمت إضافة الوجبة إلى السلة بنجاح',
+          title: 'تم الحفظ',
         );
       }
     } catch (e) {

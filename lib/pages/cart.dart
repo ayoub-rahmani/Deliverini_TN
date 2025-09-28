@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:lottie/lottie.dart';
 import 'package:app3/device/deviceutils.dart';
-import 'package:app3/common/scroll_helper.dart'; // import the mixin
+import 'package:app3/common/scroll_helper.dart';
+import '../common/slide_notif.dart';
 import '../services/order_service.dart';
 import 'delivery_selection_page.dart';
 
@@ -14,7 +15,7 @@ class Cart extends StatefulWidget {
   State createState() => _CartState();
 }
 
-class _CartState extends State<Cart> with ScrollHelper {  // Add the mixin here
+class _CartState extends State<Cart> with ScrollHelper {
   final CollectionReference _cartRef = FirebaseFirestore.instance.collection('cart');
   bool _isOrdering = false;
   Map<String, bool> _expandedItems = {};
@@ -80,7 +81,7 @@ class _CartState extends State<Cart> with ScrollHelper {  // Add the mixin here
             orderId: orderId,
             onDeliverySelected: () {
               Navigator.pop(context); // Close the modal
-              _showSuccessDialog(orderId);
+              _showSuccessNotification(orderId);
             },
           ),
         );
@@ -89,113 +90,23 @@ class _CartState extends State<Cart> with ScrollHelper {  // Add the mixin here
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('حدث خطأ أثناء إرسال الطلب', style: TextStyle(fontFamily: 'NotoSansArabic')),
-          backgroundColor: Colors.red,
-        ),
+      // Replace SnackBar with slide notification
+      ToastService.error(
+        context,
+        'حدث خطأ أثناء إرسال الطلب',
+        title: 'خطأ',
       );
     } finally {
       if (mounted) setState(() => _isOrdering = false);
     }
   }
 
-  void _showSuccessDialog(String orderId) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        contentPadding: const EdgeInsets.all(24),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 60,
-              height: 60,
-              decoration: const BoxDecoration(
-                color: Colors.green,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.check,
-                color: Colors.white,
-                size: 30,
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'تم إرسال الطلب بنجاح!',
-              style: TextStyle(
-                fontFamily: 'NotoSansArabic',
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    'رقم الطلب',
-                    style: TextStyle(
-                      fontFamily: 'NotoSansArabic',
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    orderId,
-                    style: const TextStyle(
-                      fontFamily: 'Poppins',
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'تم تعيين عامل التوصيل وسيتم التواصل معك قريباً',
-              style: TextStyle(
-                fontFamily: 'NotoSansArabic',
-                fontSize: 14,
-                color: Colors.black87,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-        actions: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => Navigator.pop(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-              ),
-              child: const Text(
-                'حسناً',
-                style: TextStyle(
-                  fontFamily: 'NotoSansArabic',
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+  void _showSuccessNotification(String orderId) {
+    // Replace AlertDialog with slide notification
+    ToastService.success(
+      context,
+      'تم إرسال الطلب بنجاح! رقم الطلب: $orderId',
+      title: 'تم بنجاح',
     );
   }
 
@@ -298,7 +209,7 @@ class _CartState extends State<Cart> with ScrollHelper {  // Add the mixin here
         children: [
           RepaintBoundary(child: Center(child: Lottie.asset("images/cart.json"))),
           Text(
-            "السّلة فارغة ! ",
+            "السِلة فارغة ! ",
             textDirection: TextDirection.rtl,
             style: TextStyle(
               color: const Color.fromARGB(255, 55, 55, 55),
@@ -313,10 +224,7 @@ class _CartState extends State<Cart> with ScrollHelper {  // Add the mixin here
     );
   }
 
-  // Replace the _buildCartContent method in your Cart class:
-
   Widget _buildCartContent(bool isTablet, List<Map<String, dynamic>> cartItems) {
-    // No need for complex expansion logic - just display items as they are
     List<Map<String, dynamic>> displayItems = cartItems;
 
     return Column(
@@ -353,8 +261,6 @@ class _CartState extends State<Cart> with ScrollHelper {  // Add the mixin here
       ],
     );
   }
-
-// Also update the _buildCartItem method to handle the new structure:
 
   Widget _buildCartItem(Map<String, dynamic> item, bool isTablet) {
     bool isCustomized = item['isCustomized'] ?? false;
@@ -495,7 +401,6 @@ class _CartState extends State<Cart> with ScrollHelper {  // Add the mixin here
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // For single sandwiches, disable quantity controls and just show delete
                         if (isSingleSandwich) ...[
                           Container(
                             width: 30,
@@ -521,7 +426,6 @@ class _CartState extends State<Cart> with ScrollHelper {  // Add the mixin here
                             ),
                           ),
                         ] else ...[
-                          // Regular quantity controls for non-customized items
                           GestureDetector(
                             onTap: () => _updateQuantity(item['id'], item['quantity'] - 1),
                             child: Container(
@@ -710,12 +614,12 @@ class _CartState extends State<Cart> with ScrollHelper {  // Add the mixin here
         ),
         const SizedBox(height: 8),
         Wrap(
-          spacing: 6, // Reduced from 8 to 6
-          runSpacing: 3, // Reduced from 4 to 3
+          spacing: 6,
+          runSpacing: 3,
           children: ingredientWidgets.map((widget) =>
               ConstrainedBox(
                 constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width * 0.4, // Max 40% of screen width
+                  maxWidth: MediaQuery.of(context).size.width * 0.4,
                 ),
                 child: widget,
               ),

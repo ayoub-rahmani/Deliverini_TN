@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:lottie/lottie.dart';
 import 'package:app3/device/deviceutils.dart';
 import 'package:app3/common/scroll_helper.dart';
+import 'package:app3/services/auth_service.dart';
+import 'package:get/get.dart';
+import 'd_navigation_controller.dart';
 
 class DeliveryProfile extends StatefulWidget {
   const DeliveryProfile({super.key});
@@ -17,53 +19,74 @@ class _DeliveryProfileState extends State<DeliveryProfile> with ScrollHelper {
   bool _soundEffects = true;
   bool _vibration = true;
 
-  // Mock user data
-  final Map _profileData = {
-    'name': 'محمد أحمد الخليفي',
-    'phone': '+216 98 123 456',
-    'email': 'mohamed.ahmed@email.com',
-    'rating': 4.8,
-    'totalDeliveries': 1247,
-    'completionRate': 98.5,
-    'responseTime': '2.3 دقيقة',
-    'joinDate': 'مارس 2023',
-    'vehicle': 'دراجة نارية',
-    'vehicleModel': 'Honda CB 125',
-    'licensePlate': 'TUN 1234',
-    'currentLevel': 'محترف',
-    'nextLevelProgress': 0.75,
-    'lifetimeEarnings': 12847.50,
-    'thisMonthEarnings': 1247.85,
-  };
+  // Get real user data from AuthService
+  Map<String, dynamic> get _profileData {
+    final user = AuthService.currentUser;
+    return {
+      'name': user?.name ?? 'عامل توصيل',
+      'email': user?.email ?? 'delivery@example.com',
+      'rating': 4.8,
+      'totalDeliveries': 1247,
+      'completionRate': 98.5,
+      'responseTime': '2.3 دقيقة',
+      'joinDate': 'مارس 2023',
+      'vehicle': 'دراجة نارية',
+      'vehicleModel': 'Honda CB 125',
+      'licensePlate': 'TUN 1234',
+      'currentLevel': 'محترف',
+      'nextLevelProgress': 0.75,
+      'thisMonthEarnings': 1247.85,
+    };
+  }
 
-  final List<Map<String, dynamic>> _achievements = [
+  final List<Map<String, dynamic>> _quickStats = [
     {
-      'title': 'سريع البرق',
-      'description': 'أكمل 50 توصيلة في وقت قياسي',
-      'icon': Icons.flash_on,
-      'color': Colors.yellow,
-      'achieved': true,
+      'title': 'اليوم',
+      'value': '12',
+      'subtitle': 'توصيلة',
+      'icon': Icons.today,
+      'color': Colors.blue,
     },
     {
-      'title': 'المحترف',
-      'description': 'وصل إلى 1000 توصيلة مكتملة',
-      'icon': Icons.star,
-      'color': Colors.purple,
-      'achieved': true,
+      'title': 'هذا الأسبوع',
+      'value': '87',
+      'subtitle': 'توصيلة',
+      'icon': Icons.date_range,
+      'color': Colors.green,
     },
     {
-      'title': 'العميل المفضل',
-      'description': 'حصل على تقييم 4.5+ لمدة شهر',
-      'icon': Icons.favorite,
-      'color': Colors.red,
-      'achieved': true,
-    },
-    {
-      'title': 'المثابر',
-      'description': 'عمل 30 يوماً متواصلاً',
-      'icon': Icons.emoji_events,
+      'title': 'الشهر الحالي',
+      'value': '1247.85',
+      'subtitle': 'دينار',
+      'icon': Icons.account_balance_wallet,
       'color': Colors.orange,
-      'achieved': false,
+    },
+  ];
+
+  final List<Map<String, dynamic>> _menuItems = [
+    {
+      'title': 'تاريخ الأرباح',
+      'subtitle': 'عرض تفصيلي لجميع أرباحك',
+      'icon': Icons.trending_up,
+      'color': Colors.green,
+    },
+    {
+      'title': 'إحصائيات الأداء',
+      'subtitle': 'تحليل مفصل للأداء والتقييمات',
+      'icon': Icons.analytics,
+      'color': Colors.blue,
+    },
+    {
+      'title': 'معلومات المركبة',
+      'subtitle': 'تعديل بيانات وثائق المركبة',
+      'icon': Icons.motorcycle,
+      'color': Colors.orange,
+    },
+    {
+      'title': 'الدعم والمساعدة',
+      'subtitle': 'تواصل معنا لأي استفسار',
+      'icon': Icons.support_agent,
+      'color': Colors.purple,
     },
   ];
 
@@ -72,702 +95,532 @@ class _DeliveryProfileState extends State<DeliveryProfile> with ScrollHelper {
     setState(() {
       _isOnline = !_isOnline;
     });
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
           _isOnline ? 'أنت الآن متصل ومتاح للطلبات' : 'أنت الآن غير متصل',
-          style: const TextStyle(fontFamily: 'NotoSansArabic'),
+          style: const TextStyle(fontFamily: 'NotoSansArabic', fontWeight: FontWeight.w600),
         ),
         backgroundColor: _isOnline ? Colors.green : Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 2),
       ),
     );
   }
 
-  void _editProfile() {
+  void _handleMenuTap(int index) {
     HapticFeedback.lightImpact();
+    final item = _menuItems[index];
+
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Text(
-          'صفحة تحرير الملف الشخصي...',
-          style: TextStyle(fontFamily: 'NotoSansArabic'),
+          'فتح ${item['title']}...',
+          style: const TextStyle(fontFamily: 'NotoSansArabic', fontWeight: FontWeight.w600),
         ),
+        backgroundColor: item['color'],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        duration: const Duration(seconds: 1),
       ),
     );
   }
 
-  void _viewEarningsHistory() {
+  void _showLogoutDialog() {
     HapticFeedback.lightImpact();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'عرض تاريخ الأرباح...',
-          style: TextStyle(fontFamily: 'NotoSansArabic'),
-        ),
-      ),
-    );
-  }
 
-  void _contactSupport() {
-    HapticFeedback.lightImpact();
     showDialog(
       context: context,
+      barrierDismissible: true,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'تواصل مع الدعم',
-          style: TextStyle(
-              fontFamily: 'NotoSansArabic', fontWeight: FontWeight.bold),
-          textAlign: TextAlign.center,
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'كيف تريد التواصل معنا؟',
-              style: TextStyle(fontFamily: 'NotoSansArabic'),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            _buildSupportOption('واتساب', Icons.message, Colors.green),
-            const SizedBox(height: 8),
-            _buildSupportOption('مكالمة هاتفية', Icons.phone, Colors.blue),
-            const SizedBox(height: 8),
-            _buildSupportOption('البريد الإلكتروني', Icons.email, Colors.orange),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'إلغاء',
-              style: TextStyle(fontFamily: 'NotoSansArabic'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSupportOption(String title, IconData icon, Color color) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'فتح $title...',
-              style: const TextStyle(fontFamily: 'NotoSansArabic'),
-            ),
-            backgroundColor: color,
-          ),
-        );
-      },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: color.withOpacity(0.3)),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: color, size: 20),
-            const SizedBox(width: 12),
-            Text(
-              title,
-              style: TextStyle(
-                fontFamily: 'NotoSansArabic',
-                color: color,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _logout() {
-    HapticFeedback.lightImpact();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text(
           'تسجيل الخروج',
           style: TextStyle(
-              fontFamily: 'NotoSansArabic', fontWeight: FontWeight.bold),
+            fontFamily: 'NotoSansArabic',
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
+          ),
           textAlign: TextAlign.center,
         ),
-        content: const Text(
-          'هل أنت متأكد من رغبتك في تسجيل الخروج؟',
-          style: TextStyle(fontFamily: 'NotoSansArabic'),
+        content: Text(
+          'هل تريد تسجيل الخروج من حساب ${_profileData['name']}؟',
+          style: const TextStyle(
+            fontFamily: 'NotoSansArabic',
+            fontSize: 16,
+          ),
           textAlign: TextAlign.center,
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'إلغاء',
-              style: TextStyle(fontFamily: 'NotoSansArabic'),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'تم تسجيل الخروج بنجاح',
-                    style: TextStyle(fontFamily: 'NotoSansArabic'),
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                  backgroundColor: Colors.red,
+                  child: const Text(
+                    'إلغاء',
+                    style: TextStyle(
+                      fontFamily: 'NotoSansArabic',
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
-            ),
-            child: const Text(
-              'تسجيل الخروج',
-              style: TextStyle(fontFamily: 'NotoSansArabic', color: Colors.white),
-            ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => _handleLogout(),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'تسجيل الخروج',
+                    style: TextStyle(
+                      fontFamily: 'NotoSansArabic',
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _handleLogout() async {
+    Navigator.pop(context); // Close dialog
+    HapticFeedback.heavyImpact();
+
+    try {
+      // Actually call AuthService.logout() - this will handle navigation via AuthWrapper
+      await AuthService.logout();
+      print('✅ Delivery profile logout completed');
+    } catch (e) {
+      print('❌ Logout error in delivery profile: $e');
+      // Show error message if logout fails
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'حدث خطأ أثناء تسجيل الخروج',
+              style: TextStyle(fontFamily: 'NotoSansArabic'),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = DeviceUtils.width(context);
+    final screenHeight = DeviceUtils.height(context);
+
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          // Online Status Toggle
-          Positioned(
-            top: 60,
-            right: 20,
-            child: GestureDetector(
-              onTap: _toggleOnlineStatus,
-              child: Container(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: CustomScrollView(
+        controller: scrollController,
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          // Custom App Bar with Profile Header
+          SliverAppBar(
+            expandedHeight: 240,
+            floating: false,
+            pinned: true,
+            backgroundColor: Colors.blue[700],
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
                 decoration: BoxDecoration(
-                  color: _isOnline ? Colors.green : Colors.red,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                      (_isOnline ? Colors.green : Colors.red).withOpacity(0.3),
-                      blurRadius: 8,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      _isOnline ? 'متصل' : 'غير متصل',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontFamily: 'NotoSansArabic',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          // Page Title
-          Positioned(
-            bottom: DeviceUtils.height(context) * 0.88 + 10,
-            right: 30,
-            child: const Text(
-              'ملفي الشخصي',
-              style: TextStyle(
-                color: Colors.white,
-                fontFamily: 'NotoSansArabic',
-                fontSize: 28,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          // Main Content Area
-          Positioned(
-            bottom: 0,
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(30),
-                topRight: Radius.circular(30),
-              ),
-              child: Container(
-                width: DeviceUtils.width(context),
-                height: DeviceUtils.height(context) * 0.88,
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [Colors.blue[700]!, Colors.blue[600]!],
                   ),
                 ),
-                child: _buildProfileContent(),
-              ),
-            ),
-          ),
-          // Animated Profile Icon
-          Positioned(
-            bottom: DeviceUtils.height(context) * 0.88,
-            left: DeviceUtils.width(context) * 0.09,
-            child: RepaintBoundary(
-              child: Lottie.asset(
-                'images/profile_delivery.json',
-                width: DeviceUtils.width(context) * 0.3,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProfileContent() {
-    return SingleChildScrollView(
-      controller: scrollController,
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        children: [
-          _buildProfileHeader(),
-          const SizedBox(height: 24),
-          _buildStatsOverview(),
-          const SizedBox(height: 20),
-          _buildLevelProgress(),
-          const SizedBox(height: 20),
-          _buildAchievements(),
-          const SizedBox(height: 20),
-          _buildSettingsSection(),
-          const SizedBox(height: 20),
-          _buildVehicleInfo(),
-          const SizedBox(height: 20),
-          _buildActionButtons(),
-          const SizedBox(height: 100),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProfileHeader() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.blue[600]!, Colors.blue[400]!],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue.withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 70,
-                height: 70,
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 3),
-                ),
-                child: const Icon(Icons.person, color: Colors.white, size: 35),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _profileData['name'],
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontFamily: 'NotoSansArabic',
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _profileData['currentLevel'],
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontFamily: 'NotoSansArabic',
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
+                child: SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        ...List.generate(5, (index) {
-                          return Icon(
-                            index < _profileData['rating'].floor()
-                                ? Icons.star
-                                : Icons.star_border,
-                            color: Colors.amber,
-                            size: 16,
-                          );
-                        }),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${_profileData['rating']}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontFamily: 'Poppins',
-                            fontWeight: FontWeight.bold,
-                          ),
+                        // Online Status Toggle
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'ملفي الشخصي',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontFamily: 'NotoSansArabic',
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: _toggleOnlineStatus,
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: _isOnline ? Colors.green : Colors.red,
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: (_isOnline ? Colors.green : Colors.red).withOpacity(0.3),
+                                      blurRadius: 6,
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 6,
+                                      height: 6,
+                                      decoration: const BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      _isOnline ? 'متصل' : 'غير متصل',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontFamily: 'NotoSansArabic',
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        // Profile Info
+                        Row(
+                          children: [
+                            Container(
+                              width: 70,
+                              height: 70,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 15,
+                                    spreadRadius: 3,
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.person,
+                                color: Colors.blue,
+                                size: 35,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    _profileData['name'],
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontFamily: 'NotoSansArabic',
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    _profileData['currentLevel'],
+                                    style: const TextStyle(
+                                      color: Colors.white70,
+                                      fontFamily: 'NotoSansArabic',
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      ...List.generate(5, (index) {
+                                        return Icon(
+                                          index < _profileData['rating'].floor()
+                                              ? Icons.star
+                                              : Icons.star_border,
+                                          color: Colors.amber,
+                                          size: 14,
+                                        );
+                                      }),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        '${_profileData['rating']}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontFamily: 'Poppins',
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        // Quick Stats Row - Compressed
+                        Row(
+                          children: _quickStats.asMap().entries.map((entry) {
+                            final stat = entry.value;
+                            return Expanded(
+                              child: Container(
+                                margin: EdgeInsets.only(
+                                  right: entry.key == 0 ? 0 : 4,
+                                  left: entry.key == _quickStats.length - 1 ? 0 : 4,
+                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.2),
+                                  ),
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      stat['value'],
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontFamily: 'Poppins',
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 1),
+                                    Text(
+                                      stat['subtitle'],
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontFamily: 'NotoSansArabic',
+                                        fontSize: 10,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
                         ),
                       ],
                     ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Main Content
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  // Performance Overview
+                  _buildPerformanceCard(),
+                  const SizedBox(height: 20),
+
+                  // Settings Section
+                  _buildSettingsCard(),
+                  const SizedBox(height: 20),
+
+                  // Menu Items
+                  _buildMenuItems(),
+                  const SizedBox(height: 20),
+
+                  // Logout Button
+                  _buildLogoutButton(),
+                  const SizedBox(height: 100), // Bottom padding for navbar
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPerformanceCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'نظرة عامة على الأداء',
+            style: TextStyle(
+              fontSize: 18,
+              fontFamily: 'NotoSansArabic',
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          Row(
+            children: [
+              _buildPerformanceItem(
+                'إجمالي التوصيلات',
+                '${_profileData['totalDeliveries']}',
+                Icons.delivery_dining,
+                Colors.blue,
+              ),
+              const SizedBox(width: 16),
+              _buildPerformanceItem(
+                'معدل الإنجاز',
+                '${_profileData['completionRate']}%',
+                Icons.check_circle,
+                Colors.green,
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Level Progress
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.purple.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.purple.withOpacity(0.2)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'التقدم للمستوى التالي',
+                      style: const TextStyle(
+                        fontFamily: 'NotoSansArabic',
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple,
+                      ),
+                    ),
+                    Text(
+                      '${(_profileData['nextLevelProgress'] * 100).toInt()}%',
+                      style: const TextStyle(
+                        fontFamily: 'Poppins',
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple,
+                      ),
+                    ),
                   ],
                 ),
-              ),
-              IconButton(
-                onPressed: _editProfile,
-                icon: const Icon(Icons.edit, color: Colors.white),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(child: _buildContactItem(Icons.phone, _profileData['phone'])),
-              const SizedBox(width: 16),
-              Expanded(child: _buildContactItem(Icons.email, _profileData['email'])),
-            ],
+                const SizedBox(height: 12),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: LinearProgressIndicator(
+                    value: _profileData['nextLevelProgress'],
+                    backgroundColor: Colors.purple.withOpacity(0.2),
+                    valueColor: const AlwaysStoppedAnimation(Colors.purple),
+                    minHeight: 6,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildContactItem(IconData icon, String text) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.white, size: 18),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                color: Colors.white,
-                fontFamily: 'Poppins',
+  Widget _buildPerformanceItem(String title, String value, IconData icon, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.2)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 20,
+                fontFamily: value.contains('%') ? 'Poppins' : 'Poppins',
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              title,
+              style: TextStyle(
                 fontSize: 12,
+                fontFamily: 'NotoSansArabic',
+                color: Colors.grey[600],
               ),
-              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatsOverview() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'إحصائياتي',
-            style: TextStyle(
-              fontSize: 18,
-              fontFamily: 'NotoSansArabic',
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatItem(
-                  'إجمالي التوصيلات',
-                  '${_profileData['totalDeliveries']}',
-                  Icons.delivery_dining,
-                  Colors.blue,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatItem(
-                  'معدل الإنجاز',
-                  '${_profileData['completionRate']}%',
-                  Icons.check_circle,
-                  Colors.green,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: _buildStatItem(
-                  'وقت الاستجابة',
-                  _profileData['responseTime'],
-                  Icons.timer,
-                  Colors.orange,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildStatItem(
-                  'عضو منذ',
-                  _profileData['joinDate'],
-                  Icons.calendar_today,
-                  Colors.purple,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatItem(
-      String title, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontFamily:
-              value.contains('%') || value.contains('د') ? 'NotoSansArabic' : 'Poppins',
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 11,
-              fontFamily: 'NotoSansArabic',
-              color: Colors.grey[600],
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLevelProgress() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'المستوى الحالي: ${_profileData['currentLevel']}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontFamily: 'NotoSansArabic',
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                '${(_profileData['nextLevelProgress'] * 100).toInt()}%',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontFamily: 'Poppins',
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: _profileData['nextLevelProgress'],
-              backgroundColor: Colors.grey[300],
-              valueColor: const AlwaysStoppedAnimation(Colors.purple),
-              minHeight: 8,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'أكمل المزيد من التوصيلات للوصول للمستوى التالي',
-            style: TextStyle(
-              fontSize: 12,
-              fontFamily: 'NotoSansArabic',
-              color: Colors.grey,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAchievements() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'الإنجازات',
-            style: TextStyle(
-              fontSize: 18,
-              fontFamily: 'NotoSansArabic',
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children:
-            _achievements.map((achievement) => _buildAchievementBadge(achievement)).toList(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAchievementBadge(Map achievement) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: achievement['achieved']
-            ? achievement['color'].withOpacity(0.1)
-            : Colors.grey.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: achievement['achieved']
-              ? achievement['color'].withOpacity(0.5)
-              : Colors.grey.withOpacity(0.3),
+          ],
         ),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            achievement['icon'],
-            color: achievement['achieved'] ? achievement['color'] : Colors.grey,
-            size: 24,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            achievement['title'],
-            style: TextStyle(
-              fontSize: 12,
-              fontFamily: 'NotoSansArabic',
-              fontWeight: FontWeight.bold,
-              color: achievement['achieved'] ? achievement['color'] : Colors.grey,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            achievement['description'],
-            style: TextStyle(
-              fontSize: 10,
-              fontFamily: 'NotoSansArabic',
-              color: Colors.grey[600],
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
     );
   }
 
-  Widget _buildSettingsSection() {
+  Widget _buildSettingsCard() {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -784,44 +637,49 @@ class _DeliveryProfileState extends State<DeliveryProfile> with ScrollHelper {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 16),
-          _buildSettingItem('الإشعارات الفورية', 'تلقي إشعارات الطلبات الجديدة',
-              Icons.notifications, _pushNotifications, (value) {
-                setState(() {
-                  _pushNotifications = value;
-                });
-              }),
-          _buildSettingItem('الأصوات', 'تشغيل الأصوات والتنبيهات', Icons.volume_up,
-              _soundEffects, (value) {
-                setState(() {
-                  _soundEffects = value;
-                });
-              }),
-          _buildSettingItem('الاهتزاز', 'تفعيل الاهتزاز للتنبيهات', Icons.vibration,
-              _vibration, (value) {
-                setState(() {
-                  _vibration = value;
-                });
-              }),
+          const SizedBox(height: 20),
+
+          _buildSettingItem(
+            'الإشعارات الفورية',
+            'تلقي إشعارات الطلبات الجديدة',
+            Icons.notifications_outlined,
+            _pushNotifications,
+                (value) => setState(() => _pushNotifications = value),
+          ),
+
+          _buildSettingItem(
+            'الأصوات',
+            'تشغيل الأصوات والتنبيهات',
+            Icons.volume_up_outlined,
+            _soundEffects,
+                (value) => setState(() => _soundEffects = value),
+          ),
+
+          _buildSettingItem(
+            'الاهتزاز',
+            'تفعيل الاهتزاز للتنبيهات',
+            Icons.vibration,
+            _vibration,
+                (value) => setState(() => _vibration = value),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSettingItem(
-      String title, String subtitle, IconData icon, bool value, Function(bool) onChanged) {
+  Widget _buildSettingItem(String title, String subtitle, IconData icon, bool value, Function(bool) onChanged) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 16),
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 44,
+            height: 44,
             decoration: BoxDecoration(
               color: Colors.blue.withOpacity(0.1),
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: Colors.blue, size: 20),
+            child: Icon(icon, color: Colors.blue, size: 22),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -832,10 +690,11 @@ class _DeliveryProfileState extends State<DeliveryProfile> with ScrollHelper {
                   title,
                   style: const TextStyle(
                     fontFamily: 'NotoSansArabic',
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w600,
                     fontSize: 14,
                   ),
                 ),
+                const SizedBox(height: 2),
                 Text(
                   subtitle,
                   style: TextStyle(
@@ -860,135 +719,112 @@ class _DeliveryProfileState extends State<DeliveryProfile> with ScrollHelper {
     );
   }
 
-  Widget _buildVehicleInfo() {
+  Widget _buildMenuItems() {
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'معلومات المركبة',
-            style: TextStyle(
-              fontSize: 18,
-              fontFamily: 'NotoSansArabic',
-              fontWeight: FontWeight.bold,
+        children: _menuItems.asMap().entries.map((entry) {
+          final index = entry.key;
+          final item = entry.value;
+          final isLast = index == _menuItems.length - 1;
+
+          return InkWell(
+            onTap: () => _handleMenuTap(index),
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                border: isLast ? null : Border(
+                  bottom: BorderSide(
+                    color: Colors.grey.withOpacity(0.1),
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: item['color'].withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(item['icon'], color: item['color'], size: 22),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item['title'],
+                          style: const TextStyle(
+                            fontFamily: 'NotoSansArabic',
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          item['subtitle'],
+                          style: TextStyle(
+                            fontFamily: 'NotoSansArabic',
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: Colors.grey[400],
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.motorcycle, color: Colors.orange, size: 28),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _profileData['vehicleModel'],
-                      style: const TextStyle(
-                        fontFamily: 'Poppins',
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      _profileData['vehicle'],
-                      style: TextStyle(
-                        fontFamily: 'NotoSansArabic',
-                        color: Colors.grey[600],
-                        fontSize: 14,
-                      ),
-                    ),
-                    Text(
-                      'رقم اللوحة: ${_profileData['licensePlate']}',
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        color: Colors.grey[600],
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
+          );
+        }).toList(),
       ),
     );
   }
 
-  Widget _buildActionButtons() {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: _viewEarningsHistory,
-                icon: const Icon(Icons.account_balance_wallet, color: Colors.white),
-                label: const Text(
-                  'تاريخ الأرباح',
-                  style: TextStyle(fontFamily: 'NotoSansArabic', color: Colors.white),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: _contactSupport,
-                icon: const Icon(Icons.support_agent, color: Colors.white),
-                label: const Text(
-                  'الدعم',
-                  style: TextStyle(fontFamily: 'NotoSansArabic', color: Colors.white),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        ElevatedButton.icon(
-          onPressed: _logout,
-          icon: const Icon(Icons.logout, color: Colors.white),
-          label: const Text(
-            'تسجيل الخروج',
-            style: TextStyle(fontFamily: 'NotoSansArabic', color: Colors.white),
-          ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            padding: const EdgeInsets.symmetric(vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  Widget _buildLogoutButton() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      child: ElevatedButton.icon(
+        onPressed: _showLogoutDialog,
+        icon: const Icon(Icons.logout, color: Colors.white),
+        label: const Text(
+          'تسجيل الخروج',
+          style: TextStyle(
+            fontFamily: 'NotoSansArabic',
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
           ),
         ),
-      ],
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.red,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 0,
+        ),
+      ),
     );
   }
 }
