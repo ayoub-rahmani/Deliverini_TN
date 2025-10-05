@@ -21,11 +21,12 @@ class _MessagesState extends State<Messages> with AutomaticKeepAliveClientMixin,
   final ChatService _chatService = ChatService();
   final TextEditingController _searchController = TextEditingController();
 
-  List<ChatUser> _allUsers = [];
-  List<ChatUser> _filteredUsers = [];
+  List<ChatUser> _chattedUsers = [];
+  List<ChatUser> _searchResults = [];
   bool _isSearching = false;
   bool _isLoading = true;
   Timer? _debounceTimer;
+  bool _showSearchResults = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -33,7 +34,7 @@ class _MessagesState extends State<Messages> with AutomaticKeepAliveClientMixin,
   @override
   void initState() {
     super.initState();
-    _loadUsers();
+    _loadChattedUsers();
   }
 
   @override
@@ -43,13 +44,12 @@ class _MessagesState extends State<Messages> with AutomaticKeepAliveClientMixin,
     super.dispose();
   }
 
-  void _loadUsers() async {
+  void _loadChattedUsers() async {
     try {
-      final users = await _chatService.getChatUsers();
+      final users = await _chatService.getChattedUsers();
       if (mounted) {
         setState(() {
-          _allUsers = users;
-          _filteredUsers = users;
+          _chattedUsers = users;
           _isLoading = false;
         });
       }
@@ -60,34 +60,230 @@ class _MessagesState extends State<Messages> with AutomaticKeepAliveClientMixin,
 
   void _searchUsers(String query) {
     _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
-      if (query.isEmpty) {
-        setState(() {
-          _filteredUsers = _allUsers;
-          _isSearching = false;
-        });
-        return;
-      }
 
-      setState(() => _isSearching = true);
-      final results = _allUsers.where((user) =>
-          user.name.toLowerCase().contains(query.toLowerCase())).toList();
+    if (query.isEmpty) {
       setState(() {
-        _filteredUsers = results;
-        _isSearching = false;
+        _showSearchResults = false;
+        _searchResults.clear();
       });
+      return;
+    }
+
+    setState(() => _isSearching = true);
+
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
+      try {
+        final results = await _chatService.searchUsers(query);
+        if (mounted) {
+          setState(() {
+            _searchResults = results;
+            _showSearchResults = true;
+            _isSearching = false;
+          });
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isSearching = false);
+        }
+      }
     });
   }
 
-  void _navigateToChat(ChatUser user) {
+  void _navigateToChat(ChatUser user) async {
     HapticFeedback.selectionClick();
+    try {
+      final chatId = await _chatService.getOrCreateChatRoom(user.id);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => Conversation(chatId: chatId, otherUser: user),
+        ),
+      ).then((_) {
+        // Reload chatted users when returning from conversation
+        _loadChattedUsers();
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('فشل في فتح المحادثة'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  void _deleteConversation(ChatUser user) async {
+    HapticFeedback.heavyImpact();
+
     final chatId = _chatService.generateChatId(ChatService.currentUserId, user.id);
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => Conversation(chatId: chatId, otherUser: user),
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('حذف المحادثة'),
+        content: Text('هل أنت متأكد من أنك تريد حذف هذه المحادثة؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              try {
+                await _chatService.deleteConversation(chatId);
+                setState(() {
+                  _chattedUsers.removeWhere((u) => u.id == user.id);
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('تم حذف المحادثة'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('فشل في حذف المحادثة'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              }
+            },
+            child: Text('حذف', style: TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
+  }
+
+  Widget _buildUserList(List<ChatUser> users, {bool isSearchResult = false}) {
+    if (users.isEmpty) {
+      return Center(
+        child: Text(
+          isSearchResult ? 'لا توجد نتائج' : 'لا توجد محادثات',
+          style: TextStyle(
+            fontFamily: 'NotoSansArabic',
+            fontSize: 16,
+            color: Colors.grey,
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      controller: scrollController,
+      physics: const BouncingScrollPhysics(),
+      itemCount: users.length,
+      itemBuilder: (context, index) {
+        final user = users[index];
+        return Dismissible(
+          key: ValueKey(user.id + (isSearchResult ? '_search' : '_chat')),
+          direction: isSearchResult ? DismissDirection.none : DismissDirection.endToStart,
+          background: Container(
+            color: Colors.red,
+            alignment: Alignment.centerRight,
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Icon(Icons.delete, color: Colors.white),
+          ),
+          confirmDismiss: (direction) async {
+            // Show confirmation dialog
+            final bool? shouldDelete = await showDialog<bool>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: Text('حذف المحادثة'),
+                content: Text('هل أنت متأكد من أنك تريد حذف هذه المحادثة؟'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: Text('إلغاء'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, true),
+                    child: Text('حذف', style: TextStyle(color: Colors.red)),
+                  ),
+                ],
+              ),
+            );
+            return shouldDelete ?? false;
+          },
+          onDismissed: (_) {
+            // Remove the item from the list immediately
+            if (isSearchResult) {
+              setState(() {
+                _searchResults.removeAt(index);
+              });
+            } else {
+              setState(() {
+                _chattedUsers.removeAt(index);
+              });
+            }
+            // Then delete from Firebase
+            _deleteConversationFromFirebase(user);
+          },
+          child: MessageCard(
+            key: ValueKey(user.id),
+            user: user,
+            onTap: () => _navigateToChat(user),
+            showDeleteIcon: !isSearchResult,
+            onDelete: () => _showDeleteDialog(user, isSearchResult ? _searchResults : _chattedUsers, index),
+          ),
+        );
+      },
+    );
+  }
+
+  void _deleteConversationFromFirebase(ChatUser user) async {
+    final chatId = _chatService.generateChatId(ChatService.currentUserId, user.id);
+    try {
+      await _chatService.deleteConversation(chatId);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('تم حذف المحادثة'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('فشل في حذف المحادثة'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      // If deletion fails, reload the users to restore the list
+      _loadChattedUsers();
+    }
+  }
+
+// Show delete confirmation dialog for the delete icon
+  void _showDeleteDialog(ChatUser user, List<ChatUser> userList, int index) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('حذف المحادثة'),
+        content: Text('هل أنت متأكد من أنك تريد حذف هذه المحادثة؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('حذف', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete == true) {
+      // Remove from UI immediately
+      setState(() {
+        userList.removeAt(index);
+      });
+
+      // Then delete from Firebase
+      _deleteConversationFromFirebase(user);
+    }
   }
 
   @override
@@ -145,7 +341,7 @@ class _MessagesState extends State<Messages> with AutomaticKeepAliveClientMixin,
                           textDirection: TextDirection.rtl,
                           onChanged: _searchUsers,
                           decoration: InputDecoration(
-                            hintText: 'ابحث عن المستخدمين...',
+                            hintText: 'ابحث عن مستخدمين...',
                             hintStyle: const TextStyle(
                               fontFamily: 'NotoSansArabic',
                               color: Colors.grey,
@@ -182,19 +378,9 @@ class _MessagesState extends State<Messages> with AutomaticKeepAliveClientMixin,
                       Expanded(
                         child: _isLoading
                             ? const Center(child: CircularProgressIndicator(color: Colors.orange))
-                            : ListView.builder(
-                          controller: scrollController,
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: _filteredUsers.length,
-                          itemBuilder: (context, index) {
-                            final user = _filteredUsers[index];
-                            return MessageCard(
-                              key: ValueKey(user.id),
-                              user: user,
-                              onTap: () => _navigateToChat(user),
-                            );
-                          },
-                        ),
+                            : _showSearchResults
+                            ? _buildUserList(_searchResults, isSearchResult: true)
+                            : _buildUserList(_chattedUsers),
                       ),
                     ],
                   ),

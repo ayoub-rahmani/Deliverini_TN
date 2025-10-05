@@ -108,6 +108,110 @@ class ChatService {
       return <ChatUser>[];
     }
   }
+  // Get only users you've chatted with
+  Future<List<ChatUser>> getChattedUsers() async {
+    try {
+      final currentUser = AuthService.currentUser;
+      if (currentUser == null) return <ChatUser>[];
+
+      // Get all chat rooms where current user is a participant
+      final chatRooms = await _firestore
+          .collection('chats')
+          .where('participants', arrayContains: currentUserId)
+          .get();
+
+      final chattedUserIds = <String>{};
+
+      for (final room in chatRooms.docs) {
+        final participants = room.data()['participants'] as List<dynamic>;
+        for (final participant in participants) {
+          if (participant != currentUserId) {
+            chattedUserIds.add(participant as String);
+          }
+        }
+      }
+
+      // Get user details for these IDs
+      final users = <ChatUser>[];
+      for (final userId in chattedUserIds) {
+        final userDoc = await _firestore.collection('users').doc(userId).get();
+        if (userDoc.exists) {
+          final userData = userDoc.data() as Map<String, dynamic>;
+          users.add(ChatUser(
+            id: userDoc.id,
+            name: userData['name'] ?? 'Unknown User',
+            profileImage: userData['profileImage'] ?? 'images/pp.jpg',
+            isOnline: userData['isOnline'] ?? false,
+            lastSeen: userData['lastSeen']?.toDate() ?? DateTime.now(),
+          ));
+        }
+      }
+
+      return users;
+    } catch (e) {
+      print('❌ Error getting chatted users: $e');
+      return <ChatUser>[];
+    }
+  }
+
+// Search users to start new conversations
+  Future<List<ChatUser>> searchUsers(String query) async {
+    try {
+      final currentUser = AuthService.currentUser;
+      if (currentUser == null) return <ChatUser>[];
+
+      final usersSnapshot = await _firestore
+          .collection('users')
+          .where('name', isGreaterThanOrEqualTo: query)
+          .where('name', isLessThanOrEqualTo: query + '\uf8ff')
+          .get();
+
+      final users = <ChatUser>[];
+      for (final doc in usersSnapshot.docs) {
+        if (doc.id != currentUserId) { // Exclude current user
+          final data = doc.data();
+          users.add(ChatUser(
+            id: doc.id,
+            name: data['name'] ?? 'Unknown User',
+            profileImage: data['profileImage'] ?? 'images/pp.jpg',
+            isOnline: data['isOnline'] ?? false,
+            lastSeen: data['lastSeen']?.toDate() ?? DateTime.now(),
+          ));
+        }
+      }
+
+      return users;
+    } catch (e) {
+      print('❌ Error searching users: $e');
+      return <ChatUser>[];
+    }
+  }
+
+// Delete conversation
+  Future<void> deleteConversation(String chatId) async {
+    try {
+      // Delete all messages in the conversation
+      final messagesSnapshot = await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .get();
+
+      final batch = _firestore.batch();
+      for (final doc in messagesSnapshot.docs) {
+        batch.delete(doc.reference);
+      }
+
+      // Delete the chat room
+      batch.delete(_firestore.collection('chats').doc(chatId));
+
+      await batch.commit();
+      print('🗑️ Deleted conversation: $chatId');
+    } catch (e) {
+      print('❌ Error deleting conversation: $e');
+      throw e;
+    }
+  }
 
   // Mark messages as read
   Future<void> markMessagesAsRead(String chatId) async {

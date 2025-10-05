@@ -5,14 +5,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_inner_shadow/flutter_inner_shadow.dart';
 
 class MessageCard extends StatelessWidget {
+  final ChatUser user;
+  final VoidCallback onTap;
+  final VoidCallback onDelete;
+  final bool showDeleteIcon;
+
   const MessageCard({
     super.key,
     required this.user,
     required this.onTap,
+    required this.onDelete,
+    required this.showDeleteIcon,
   });
-
-  final ChatUser user;
-  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -157,38 +161,56 @@ class MessageCard extends StatelessWidget {
                 ),
               ),
 
-              // Unread count badge
-              StreamBuilder<int>(
-                stream: _getUnreadCountStream(user.id),
-                builder: (context, snapshot) {
-                  final unreadCount = snapshot.data ?? 0;
+              // Right side - Unread count and Delete icon
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Unread count badge
+                  StreamBuilder<int>(
+                    stream: _getUnreadCountStream(user.id),
+                    builder: (context, snapshot) {
+                      final unreadCount = snapshot.data ?? 0;
 
-                  if (unreadCount == 0) {
-                    return const SizedBox.shrink();
-                  }
+                      if (unreadCount == 0) {
+                        return const SizedBox.shrink();
+                      }
 
-                  return Container(
-                    margin: const EdgeInsets.only(left: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: const BoxDecoration(
-                      color: Colors.orange,
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 20,
-                      minHeight: 20,
-                    ),
-                    child: Text(
-                      unreadCount > 99 ? '99+' : unreadCount.toString(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                      return Container(
+                        margin: const EdgeInsets.only(left: 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: const BoxDecoration(
+                          color: Colors.orange,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 20,
+                          minHeight: 20,
+                        ),
+                        child: Text(
+                          unreadCount > 99 ? '99+' : unreadCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                    },
+                  ),
+
+                  // Delete icon (only for existing conversations)
+                  if (showDeleteIcon)
+                    IconButton(
+                      icon: Icon(Icons.delete_outline, color: Colors.grey[600]),
+                      onPressed: onDelete,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 40,
+                        minHeight: 40,
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                  );
-                },
+                ],
               ),
             ],
           ),
