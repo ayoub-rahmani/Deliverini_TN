@@ -44,9 +44,10 @@
 |------------|-----------------|-----------------|
 | ![Home](screenshots/home.png) | ![Details](screenshots/details.png) | ![Cart](screenshots/cart.png) |
 
-| Chat Feature | Order Tracking |
-|-------------|----------------|
-| ![Chat](screenshots/chat.png) | ![Orders](screenshots/orders.png) |
+| Chat Feature | Order Tracking | Conversations |
+|-------------|----------------|-----------------|
+| ![Chat](screenshots/chat.png) | ![Orders](screenshots/orders.png) | ![Conversations](screenshots/conversations.png) |
+
 
 </div>
 
@@ -99,7 +100,7 @@ Add your Firebase configuration files:
 **Ayoub Rahmani**
 
 - Portfolio: [ayoub-rahmani.github.io](https://ayoub-rahmani.github.io)
-- LinkedIn: [ayoub-rahmani](https://www.linkedin.com/in/ayoub-rahmani-linkêdin)
+- LinkedIn: [ayoub-rahmani-linkêdin](https://www.linkedin.com/in/ayoub-rahmani-linkêdin)
 - Email: ayoub.rahmani.dev@gmail.com
 
 ---
