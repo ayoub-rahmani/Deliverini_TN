@@ -53,7 +53,7 @@
 
 ## 🎥 Demo
 
-https://github.com/ayoub-rahmani/Deliverini_TN/assets/YOUR_USER_ID/demo.mp4
+[Demo.mp4](https://github.com/ayoub-rahmani/Deliverini_TN/blob/master/demo.mp4)
 
 *Full app walkthrough showing ordering flow and real-time tracking (1 min)*
 
