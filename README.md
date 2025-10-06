@@ -53,8 +53,8 @@
 
 ## 🎥 Demo
 
-## 🎥 Demo
-[![Watch Demo](https://img.shields.io/badge/▶️_Watch_App_in_Action-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=4YPkkX-7DxA))
+
+[![Watch Demo](https://img.shields.io/badge/🚀_Live_Demo-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=4YPkkX-7DxA)
 
 *See the app in action in 1 min : menu browsing, cart customization, real-time messaging, and live order tracking.*
 
