@@ -53,9 +53,10 @@
 
 ## 🎥 Demo
 
-[![Watch the Demo](https://img.shields.io/badge/Watch_Demo_Video-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://github.com/ayoub-rahmani/Deliverini_TN/blob/master/demo.mp4)
+## 🎥 Demo
+[![Watch Demo](https://img.shields.io/badge/▶️_Watch_App_in_Action-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=4YPkkX-7DxA))
 
-*Full app walkthrough showing ordering flow and real-time tracking (1 min)*
+*See the app in action in 1 min : menu browsing, cart customization, real-time messaging, and live order tracking.*
 
 ## 🚀 Key Highlights
 
