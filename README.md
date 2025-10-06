@@ -53,7 +53,7 @@
 
 ## 🎥 Demo
 
-[Demo.mp4](https://github.com/ayoub-rahmani/Deliverini_TN/demo.mp4)
+[![Watch the Demo](https://img.shields.io/badge/Watch_Demo_Video-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://github.com/ayoub-rahmani/Deliverini_TN/blob/master/demo.mp4)
 
 *Full app walkthrough showing ordering flow and real-time tracking (1 min)*
 
