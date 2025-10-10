@@ -58,12 +58,12 @@ class OrderDetailsPopup {
                     _buildInfoSection(
                       'معلومات الطلب',
                       [
-                        _buildInfoRow('رقم الطلب:', orderData['orderId']?.toString() ?? '#000000', isTablet),
-                        _buildInfoRow('المطعم:', orderData['restaurant']?.toString() ?? 'غير محدد', isTablet),
-                        _buildInfoRow('عامل التوصيل:', orderData['deliveryPerson']?.toString() ?? 'غير محدد', isTablet),
-                        _buildInfoRow('الحالة:', _getStatusText(orderData['status']?.toString() ?? 'pending'), isTablet),
-                        _buildInfoRow('وقت الطلب:', _formatTimestamp(orderData['orderTime']), isTablet),
-                        _buildInfoRow('الوقت المتوقع:', orderData['estimatedDelivery']?.toString() ?? '25-35 دقيقة', isTablet),
+                        _buildInfoRow(context,'رقم الطلب :', orderData['orderId']?.toString() ?? '#000000', isTablet),
+                        _buildInfoRow(context,'المطعم :', orderData['restaurant']?.toString() ?? 'غير محدد', isTablet),
+                        _buildInfoRow(context,'عامل التوصيل :', orderData['deliveryPerson']?.toString() ?? 'غير محدد', isTablet),
+                        _buildInfoRow(context,'الحالة :', _getStatusText(orderData['status']?.toString() ?? 'pending'), isTablet),
+                        _buildInfoRow(context,'وقت الطلب :', _formatTimestamp(orderData['orderTime']), isTablet),
+                        _buildInfoRow(context,'الوقت المتوقع :', orderData['estimatedDelivery']?.toString() ?? '25-35 دقيقة', isTablet),
                       ],
                       isTablet,
                     ),
@@ -77,11 +77,11 @@ class OrderDetailsPopup {
 
                     // Customer info
                     _buildInfoSection(
-                      'معلومات العميل',
+                      'معلوماتك',
                       [
-                        _buildInfoRow('الاسم:', orderData['customerName']?.toString() ?? 'غير محدد', isTablet),
-                        _buildInfoRow('الهاتف:', orderData['customerPhone']?.toString() ?? 'غير محدد', isTablet),
-                        _buildInfoRow('العنوان:', orderData['deliveryAddress']?.toString() ?? 'غير محدد', isTablet),
+                        _buildInfoRow(context,'الاسم :', orderData['customerName']?.toString() ?? 'غير محدد', isTablet),
+                        _buildInfoRow(context,'الهاتف :', orderData['customerPhone']?.toString() ?? 'غير محدد', isTablet),
+                        _buildInfoRow(context,'العنوان :', orderData['deliveryAddress']?.toString() ?? 'غير محدد', isTablet),
                       ],
                       isTablet,
                     ),
@@ -174,14 +174,14 @@ class OrderDetailsPopup {
     );
   }
 
-  static Widget _buildInfoRow(String label, String value, bool isTablet) {
+  static Widget _buildInfoRow(BuildContext context,String label, String value, bool isTablet) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(
-            flex: 2,
+          Container(
+            width: isTablet ? DeviceUtils.width(context) *0.2 : DeviceUtils.width(context) * 0.5,
             child: Text(
               value,
               style: TextStyle(
@@ -189,18 +189,23 @@ class OrderDetailsPopup {
                 fontFamily: 'NotoSansArabic',
                 color: Colors.black87,
               ),
-              textAlign: TextAlign.left,
+              textDirection: TextDirection.rtl,
+              textAlign: TextAlign.center,
             ),
           ),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: isTablet ? 14 : 12,
-              fontFamily: 'NotoSansArabic',
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
+          Container(
+            width: isTablet ? DeviceUtils.width(context) *0.2 : DeviceUtils.width(context) * 0.3,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: isTablet ? 14 : 12,
+                fontFamily: 'NotoSansArabic',
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[700],
+              ),
+              textDirection: TextDirection.rtl,
+              textAlign: TextAlign.right,
             ),
-            textAlign: TextAlign.right,
           ),
         ],
       ),
@@ -233,7 +238,7 @@ class OrderDetailsPopup {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
-            'عناصر الطلب',
+            'الكماندة',
             style: TextStyle(
               fontSize: isTablet ? 18 : 16,
               fontFamily: 'NotoSansArabic',
@@ -448,7 +453,7 @@ class OrderDetailsPopup {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
-            'ملخص الأسعار',
+            'الثمن عند الدفع',
             style: TextStyle(
               fontSize: isTablet ? 18 : 16,
               fontFamily: 'NotoSansArabic',
@@ -458,10 +463,10 @@ class OrderDetailsPopup {
             textAlign: TextAlign.right,
           ),
           const SizedBox(height: 10),
-          _buildPriceRow('المجموع الفرعي:', '${subtotal.toStringAsFixed(1)} DT', isTablet),
-          _buildPriceRow('رسوم التوصيل:', '${deliveryFee.toStringAsFixed(1)} DT', isTablet),
+          _buildPriceRow('المجموع الفرعي :', '${subtotal.toStringAsFixed(1)} DT', isTablet),
+          _buildPriceRow('رسوم التوصيل :', '${deliveryFee.toStringAsFixed(1)} DT', isTablet),
           const Divider(),
-          _buildPriceRow('المجموع الكلي:', '${totalPrice.toStringAsFixed(1)} DT', isTablet, isTotal: true),
+          _buildPriceRow('المجموع الكلي :', '${totalPrice.toStringAsFixed(1)} DT', isTablet, isTotal: true),
         ],
       ),
     );
@@ -481,6 +486,7 @@ class OrderDetailsPopup {
               fontWeight: isTotal ? FontWeight.w700 : FontWeight.w500,
               color: isTotal ? Colors.green[800] : Colors.black87,
             ),
+            textDirection: TextDirection.ltr,
           ),
           Text(
             label,
@@ -490,6 +496,7 @@ class OrderDetailsPopup {
               fontWeight: isTotal ? FontWeight.w700 : FontWeight.w600,
               color: isTotal ? Colors.green[800] : Colors.grey[700],
             ),
+            textDirection: TextDirection.rtl,
             textAlign: TextAlign.right,
           ),
         ],

@@ -48,25 +48,28 @@ class Recommendations extends StatelessWidget {
             return const Center(child: Text('لا توجد عناصر مقترحة حالياً'));
           }
 
-          return ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: docs.length,
-            itemBuilder: (context, index) {
-              final data = docs[index].data() as Map<String, dynamic>;
+          return Container(
+            margin: EdgeInsets.only(bottom: 100),
+            child: ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: docs.length,
+              itemBuilder: (context, index) {
+                final data = docs[index].data() as Map<String, dynamic>;
 
-              return GestureDetector(
-                onTap: () => MealDetailsPopup.show(context, data),
-                child: RecomCard(
-                  title: data['name'] ?? '',
-                  price: data['price'] is int ? (data['price'] as int).toDouble() : (data['price'] ?? 0.0),
-                  rating: (data['rating'] ?? 0).toDouble(),
-                  resto: data['resto'] ?? '',
-                  imgUrl: _resolveImage(data),
-                  isfreeDel: (data['isfreeDel'] ?? false) == true,
-                ),
-              );
-            },
+                return GestureDetector(
+                  onTap: () => MealDetailsPopup.show(context, data),
+                  child: RecomCard(
+                    title: data['name'] ?? '',
+                    price: data['price'] is int ? (data['price'] as int).toDouble() : (data['price'] ?? 0.0),
+                    rating: (data['rating'] ?? 0).toDouble(),
+                    resto: data['resto'] ?? '',
+                    imgUrl: _resolveImage(data),
+                    isfreeDel: (data['isfreeDel'] ?? false) == true,
+                  ),
+                );
+              },
+            ),
           );
         },
       ),

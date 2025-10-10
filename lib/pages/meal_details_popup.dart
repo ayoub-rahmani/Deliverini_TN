@@ -1,9 +1,11 @@
+import 'package:app3/common/helpers/helper.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:app3/device/deviceutils.dart';
-
 import '../common/slide_notif.dart';
 import 'meal_customization_page.dart'; // Import the customization page
+
+
 
 class MealDetailsPopup {
   static Future show(BuildContext context, Map mealData) {
@@ -13,7 +15,7 @@ class MealDetailsPopup {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => DraggableScrollableSheet(
-        initialChildSize: 0.85,
+        initialChildSize: 0.95,
         maxChildSize: 0.95,
         minChildSize: 0.6,
         expand: false,
@@ -123,7 +125,7 @@ class _MealDetailsContentState extends State<MealDetailsContent> {
       final orderData = {
         'id': docId,
         'name': widget.mealData['name'] ?? 'Unknown Meal',
-        'price': (widget.mealData['price'] ?? 0.0).toDouble(),
+        'price': Helpers.formatPrice(widget.mealData['price'] ?? 0.0),
         'quantity': quantity,
         'image': widget.mealData['imgUrl'] ?? 'images/meal.png',
         'ingredients': widget.mealData['ingredients'] ?? '',
@@ -210,7 +212,7 @@ class _MealDetailsContentState extends State<MealDetailsContent> {
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
       ),
-      padding: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(15),
       child: ListView(
         controller: widget.scrollController,
         children: [
@@ -221,6 +223,7 @@ class _MealDetailsContentState extends State<MealDetailsContent> {
               onTap: () => Navigator.of(context).pop(),
               child: Container(
                 padding: const EdgeInsets.all(8),
+                margin: const EdgeInsets.only(left: 10, top: 10, bottom: 15),
                 decoration: BoxDecoration(
                   color: Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(12),
@@ -239,7 +242,6 @@ class _MealDetailsContentState extends State<MealDetailsContent> {
             borderRadius: BorderRadius.circular(20),
             child: Image.asset(
               meal['imgUrl'] ?? 'images/meal.png',
-              width: double.infinity,
               height: deviceHeight * 0.25,
               fit: BoxFit.cover,
               cacheWidth: (deviceWidth * 3).toInt(), // good cache
@@ -272,13 +274,14 @@ class _MealDetailsContentState extends State<MealDetailsContent> {
               border: Border.all(color: Colors.orange.shade200),
             ),
             child: Text(
-              '${(meal['price'] ?? 0.0).toStringAsFixed(3)} د.ت',
+              ' ${(meal['price']).toString()} DT',
               style: TextStyle(
                 fontFamily: 'Poppins',
                 fontWeight: FontWeight.w700,
                 fontSize: deviceWidth * 0.06,
                 color: Colors.orange.shade700,
               ),
+              textDirection: TextDirection.ltr,
               textAlign: TextAlign.center,
             ),
           ),

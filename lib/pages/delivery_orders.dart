@@ -84,20 +84,24 @@ class _DeliveryOrdersState extends State<DeliveryOrders> with ScrollHelper {
 
                       final orders = snapshot.data!.docs;
                       if (orders.isEmpty) {
-                        return Center(
+                        return Container(
+                          padding: const EdgeInsets.only(top: 15),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Lottie.asset('images/cart.json'),
-                              const SizedBox(height: 20),
+                              RepaintBoundary(child: Center(child: Lottie.asset("images/orders-none.json"))),
                               Text(
-                                'لا توجد طلبات حالياً',
+                                "لا توجد طلبات حاليا ! ",
+                                textDirection: TextDirection.rtl,
                                 style: TextStyle(
-                                  fontSize: 24,
-                                  fontFamily: 'NotoSansArabic',
-                                  color: Colors.grey[700],
+                                  color: const Color.fromARGB(255, 55, 55, 55),
+                                  fontFamily: "NotoSansArabic",
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
+                              SizedBox(height: DeviceUtils.height(context) * 0.15),
                             ],
                           ),
                         );
@@ -105,7 +109,9 @@ class _DeliveryOrdersState extends State<DeliveryOrders> with ScrollHelper {
 
                       return ListView.builder(
                         controller: scrollController,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.only(top: 20, bottom: 120),
+                        cacheExtent: 500,
                         itemCount: orders.length,
                         itemBuilder: (context, index) {
                           final orderDoc = orders[index];

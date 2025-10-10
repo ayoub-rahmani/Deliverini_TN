@@ -28,7 +28,7 @@ class OrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isTablet = DeviceUtils.isTablet(context);
-    final cardHeight = isTablet ? 180.0 : 160.0;
+    final cardHeight = isTablet ? 180.0 : 150.0;
     final imageSize = isTablet ? 110.0 : 100.0;
 
     return RepaintBoundary(
@@ -54,77 +54,78 @@ class OrderCard extends StatelessWidget {
         child: Column(
           children: [
             // Main content area
-            Expanded(
-              child: Row(
-                children: [
-                  // Food image
-                  Container(
-                    width: imageSize,
-                    height: imageSize,
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage(image),
-                        fit: BoxFit.cover,
-                      ),
-                      border: Border.all(
-                        color: Colors.black.withOpacity(0.48),
-                        width: 1,
-                      ),
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(10),
-                        bottomRight: Radius.circular(10),
-                      ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Food image
+                Container(
+                  width: imageSize,
+                  height: imageSize,
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                      image: AssetImage(image),
+                      fit: BoxFit.cover,
+                    ),
+                    border: Border.all(
+                      color: Colors.black.withOpacity(0.48),
+                      width: 1,
+                    ),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(10),
+                      bottomRight: Radius.circular(10),
                     ),
                   ),
+                ),
 
-                  // Order details
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 12,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildDetailRow(
-                            'الكماندة :',
-                            orderName,
-                            isTablet: isTablet,
-                          ),
-                          _buildDetailRow(
-                            'المطعم :',
-                            restaurant,
-                            isTablet: isTablet,
-                          ),
-                          _buildDetailRow(
-                            'عامل التوصيل :',
-                            deliveryPerson,
-                            isTablet: isTablet,
-                          ),
-                          _buildDetailRow(
-                            'المعرف :',
-                            orderId.length > 8 ? orderId.substring(0, 8) : orderId,
-                            isTablet: isTablet,
-                          ),
-                        ],
-                      ),
+                // Order details
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 15,
+                      vertical: 4,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildDetailRow(
+                          'الكماندة :',
+                          orderName,
+                          isTablet: isTablet,
+                        ),
+                        _buildDetailRow(
+                          'المطعم :',
+                          restaurant,
+                          isTablet: isTablet,
+                        ),
+                        _buildDetailRow(
+                          'عامل التوصيل :',
+                          deliveryPerson,
+                          isTablet: isTablet,
+                        ),
+                        _buildDetailRow(
+                          'المعرف :',
+                          orderId.length > 8 ? orderId.substring(0, 8) : '#00${orderId}',
+                          isTablet: isTablet,
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
 
             // Action buttons
             Container(
+              margin: EdgeInsets.only(top: 7),
               height: isTablet ? 40 : 35,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   Flexible(
                     child: _buildActionButton(
+                      context,
                       'محادثة',
                       'images/chat_icon.png',
                       onTap: () => _navigateToChat(context),
@@ -133,6 +134,7 @@ class OrderCard extends StatelessWidget {
                   ),
                   Flexible(
                     child: _buildActionButton(
+                      context,
                       'تفاصيل',
                       'images/details_icon.png',
                       onTap: () => OrderDetailsPopup.show(context, orderData),
@@ -141,7 +143,8 @@ class OrderCard extends StatelessWidget {
                   ),
                   Flexible(
                     child: _buildActionButton(
-                      'تتبعني',
+                      context,
+                      'تبعني',
                       'images/track_icon.png',
                       onTap: () => _showTrackingInfo(context),
                       isTablet: isTablet,
@@ -163,17 +166,22 @@ class OrderCard extends StatelessWidget {
           flex: 2,
           child: Text(
             value,
-            textAlign: TextAlign.left,
+            textAlign: TextAlign.right,
             style: TextStyle(
               color: Colors.black,
-              fontSize: isTablet ? 15 : 13,
+              fontSize: isTablet ? 15 : 14,
               fontFamily: 'Poppins',
               fontWeight: FontWeight.w400,
+
             ),
+
+            textDirection: TextDirection.rtl,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
         ),
+        SizedBox(width: 10)
+        ,
         Text(
           label,
           textAlign: TextAlign.right,
@@ -183,12 +191,14 @@ class OrderCard extends StatelessWidget {
             fontFamily: 'NotoSansArabic',
             fontWeight: FontWeight.w600,
           ),
+          textDirection: TextDirection.rtl,
         ),
       ],
     );
   }
 
   Widget _buildActionButton(
+      BuildContext context,
       String text,
       String iconPath, {
         required VoidCallback onTap,
@@ -200,7 +210,9 @@ class OrderCard extends StatelessWidget {
         onTap();
       },
       child: Container(
+
         height: isTablet ? 32 : 28,
+        width: isTablet ? DeviceUtils.width(context) * 0.25: DeviceUtils.width(context) * 0.25,
         padding: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -237,7 +249,7 @@ class OrderCard extends StatelessWidget {
                 );
               },
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 10),
             Text(
               text,
               style: TextStyle(

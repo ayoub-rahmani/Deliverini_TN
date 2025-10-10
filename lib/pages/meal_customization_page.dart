@@ -125,16 +125,17 @@ class _MealCustomizationPageState extends State<MealCustomizationPage> {
       body: Stack(
         children: [
           Positioned(
-            bottom: DeviceUtils.height(context) * 0.88 + 10,
+            bottom: DeviceUtils.height(context) * 0.9 + 10,
             right: 30,
             child: Text(
-              "تخصيص ${widget.mealName}",
+              "${widget.mealName}",
               style: const TextStyle(
                 color: Colors.white,
                 fontFamily: "NotoSansArabic",
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
               ),
+              textDirection: TextDirection.rtl,
             ),
           ),
 
@@ -145,7 +146,7 @@ class _MealCustomizationPageState extends State<MealCustomizationPage> {
                   topLeft: Radius.circular(30), topRight: Radius.circular(30)),
               child: Container(
                 width: DeviceUtils.width(context),
-                height: DeviceUtils.height(context) * 0.88,
+                height: DeviceUtils.height(context) * 0.9,
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   borderRadius:
@@ -182,50 +183,16 @@ class _MealCustomizationPageState extends State<MealCustomizationPage> {
                         itemBuilder: (context, index) {
                           return SingleChildScrollView(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Column(
-                              children: [
-                                Container(
-                                  height: isTablet ? 200 : 150,
-                                  width: double.infinity,
-                                  margin: const EdgeInsets.only(bottom: 20),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color.fromARGB(95, 0, 0, 0),
-                                        spreadRadius: 1,
-                                        blurRadius: 15,
-                                      ),
-                                    ],
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: Image.asset(
-                                      widget.imageUrl,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) => Container(
-                                        color: Colors.grey[200],
-                                        child: const Icon(Icons.restaurant,
-                                            size: 50, color: Colors.grey),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const Text(
-                                  'تخصيص المكونات',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    fontFamily: 'NotoSansArabic',
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                ..._availableIngredients.map((ingredient) {
-                                  int amount =
-                                      _sandwichCustomizations[index]['ingredients'][ingredient] ?? 0;
-                                  return Container(
-                                    margin: const EdgeInsets.only(bottom: 12, left: 8, right: 8),
+                            child: Container(
+                              margin: EdgeInsets.only(top: 20),
+                              child: Column(
+                                children: [
+                                  Container(
+                                    height: 200,
+                                    width: double.infinity,
+                                    margin: const EdgeInsets.only(bottom: 20),
                                     decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(20),
                                       boxShadow: [
                                         BoxShadow(
                                           color: const Color.fromARGB(95, 0, 0, 0),
@@ -235,145 +202,192 @@ class _MealCustomizationPageState extends State<MealCustomizationPage> {
                                       ],
                                     ),
                                     child: ClipRRect(
-                                      borderRadius: const BorderRadius.all(Radius.circular(20)),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(16),
-                                        color: Colors.white,
-                                        child: Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                ingredient,
-                                                style: const TextStyle(
-                                                  fontSize: 16,
-                                                  fontFamily: 'NotoSansArabic',
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ),
-                                            Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                GestureDetector(
-                                                  onTap: () => _setIngredientLevel(ingredient, 0),
-                                                  child: Container(
-                                                    width: 40,
-                                                    height: 40,
-                                                    decoration: BoxDecoration(
-                                                      color: amount == 0
-                                                          ? const Color(0xFFE53E3E)
-                                                          : Colors.grey[200],
-                                                      borderRadius: BorderRadius.circular(10),
-                                                      boxShadow: amount == 0
-                                                          ? [
-                                                        BoxShadow(
-                                                          color: const Color(0xFFE53E3E)
-                                                              .withOpacity(0.4),
-                                                          spreadRadius: 2,
-                                                          blurRadius: 8,
-                                                          offset: const Offset(0, 2),
-                                                        ),
-                                                      ]
-                                                          : null,
-                                                    ),
-                                                    child: Center(
-                                                      child: Text(
-                                                        '−',
-                                                        style: TextStyle(
-                                                          fontSize: 20,
-                                                          fontWeight: FontWeight.bold,
-                                                          color: amount == 0
-                                                              ? Colors.white
-                                                              : Colors.grey[600],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 8),
-                                                GestureDetector(
-                                                  onTap: () => _setIngredientLevel(ingredient, 1),
-                                                  child: Container(
-                                                    width: 40,
-                                                    height: 40,
-                                                    decoration: BoxDecoration(
-                                                      color: amount == 1
-                                                          ? const Color(0xFF2D3748)
-                                                          : Colors.grey[200],
-                                                      borderRadius: BorderRadius.circular(10),
-                                                      boxShadow: amount == 1
-                                                          ? [
-                                                        BoxShadow(
-                                                          color: const Color(0xFF2D3748)
-                                                              .withOpacity(0.4),
-                                                          spreadRadius: 2,
-                                                          blurRadius: 8,
-                                                          offset: const Offset(0, 2),
-                                                        ),
-                                                      ]
-                                                          : null,
-                                                    ),
-                                                    child: Center(
-                                                      child: Text(
-                                                        '+',
-                                                        style: TextStyle(
-                                                          fontSize: 20,
-                                                          fontWeight: FontWeight.bold,
-                                                          color: amount == 1
-                                                              ? Colors.white
-                                                              : Colors.grey[600],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                const SizedBox(width: 8),
-                                                GestureDetector(
-                                                  onTap: () => _setIngredientLevel(ingredient, 2),
-                                                  child: Container(
-                                                    width: 40,
-                                                    height: 40,
-                                                    decoration: BoxDecoration(
-                                                      color: amount == 2
-                                                          ? const Color(0xFF38A169)
-                                                          : Colors.grey[200],
-                                                      borderRadius: BorderRadius.circular(10),
-                                                      boxShadow: amount == 2
-                                                          ? [
-                                                        BoxShadow(
-                                                          color: const Color(0xFF38A169)
-                                                              .withOpacity(0.4),
-                                                          spreadRadius: 2,
-                                                          blurRadius: 8,
-                                                          offset: const Offset(0, 2),
-                                                        ),
-                                                      ]
-                                                          : null,
-                                                    ),
-                                                    child: Center(
-                                                      child: Text(
-                                                        '++',
-                                                        style: TextStyle(
-                                                          fontSize: 16,
-                                                          fontWeight: FontWeight.bold,
-                                                          color: amount == 2
-                                                              ? Colors.white
-                                                              : Colors.grey[600],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: Image.asset(
+                                        widget.imageUrl,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) => Container(
+                                          color: Colors.grey[200],
+                                          child: const Icon(Icons.restaurant,
+                                              size: 50, color: Colors.grey),
                                         ),
                                       ),
                                     ),
-                                  );
-                                }).toList(),
-                                const SizedBox(height: 100),
-                              ],
+                                  ),
+                                  const Text(
+                                    'تخصيص المكونات',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'NotoSansArabic',
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  ..._availableIngredients.map((ingredient) {
+                                    int amount =
+                                        _sandwichCustomizations[index]['ingredients'][ingredient] ?? 0;
+                                    return Container(
+                                      margin: const EdgeInsets.only(bottom: 12, left: 8, right: 8),
+                                      decoration: BoxDecoration(
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: const Color.fromARGB(95, 0, 0, 0),
+                                            spreadRadius: 1,
+                                            blurRadius: 15,
+                                          ),
+                                        ],
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: const BorderRadius.all(Radius.circular(20)),
+                                        child: Container(
+                                          padding: const EdgeInsets.all(16),
+                                          color: Colors.white,
+                                          child: Row(
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.end,
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  GestureDetector(
+                                                    onTap: () => _setIngredientLevel(ingredient, 0),
+                                                    child: Container(
+                                                      width: 40,
+                                                      height: 40,
+                                                      decoration: BoxDecoration(
+                                                        color: amount == 0
+                                                            ? const Color(0xFFE53E3E)
+                                                            : Colors.grey[200],
+                                                        borderRadius: BorderRadius.circular(10),
+                                                        boxShadow: amount == 0
+                                                            ? [
+                                                          BoxShadow(
+                                                            color: const Color(0xFFE53E3E)
+                                                                .withOpacity(0.4),
+                                                            spreadRadius: 2,
+                                                            blurRadius: 8,
+                                                            offset: const Offset(0, 2),
+                                                          ),
+                                                        ]
+                                                            : null,
+                                                      ),
+                                                      child: Center(
+                                                        child: Text(
+                                                          '−',
+                                                          style: TextStyle(
+                                                            fontSize: 20,
+                                                            fontWeight: FontWeight.bold,
+                                                            color: amount == 0
+                                                                ? Colors.white
+                                                                : Colors.grey[600],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  GestureDetector(
+                                                    onTap: () => _setIngredientLevel(ingredient, 1),
+                                                    child: Container(
+                                                      width: 40,
+                                                      height: 40,
+
+                                                      decoration: BoxDecoration(
+                                                        gradient: amount == 1
+                                                            ? const LinearGradient(
+                                                          colors: [Color(0xFFE67E22), Color(0xFFD35400)],
+                                                          begin: Alignment.topLeft,
+                                                          end: Alignment.bottomRight,
+                                                        ):null,
+                                                        color: amount != 1
+                                                            ? Colors.grey[200]
+                                                            : null,
+                                                        borderRadius: BorderRadius.circular(10),
+                                                        boxShadow: amount == 1
+                                                            ? [
+                                                          BoxShadow(
+                                                            color: const Color(0xFF2D3748)
+                                                                .withOpacity(0.4),
+                                                            spreadRadius: 2,
+                                                            blurRadius: 8,
+                                                            offset: const Offset(0, 2),
+                                                          ),
+                                                        ]
+                                                            : null,
+                                                      ),
+                                                      child: Center(
+                                                        child: Text(
+                                                          '+',
+                                                          style: TextStyle(
+                                                            fontSize: 20,
+                                                            fontWeight: FontWeight.bold,
+                                                            color: amount == 1
+                                                                ? Colors.white
+                                                                : Colors.grey[600],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  GestureDetector(
+                                                    onTap: () => _setIngredientLevel(ingredient, 2),
+                                                    child: Container(
+                                                      width: 40,
+                                                      height: 40,
+                                                      decoration: BoxDecoration(
+                                                        color: amount == 2
+                                                            ? const Color(0xFF38A169)
+                                                            : Colors.grey[200],
+                                                        borderRadius: BorderRadius.circular(10),
+                                                        boxShadow: amount == 2
+                                                            ? [
+                                                          BoxShadow(
+                                                            color: const Color(0xFF38A169)
+                                                                .withOpacity(0.4),
+                                                            spreadRadius: 2,
+                                                            blurRadius: 8,
+                                                            offset: const Offset(0, 2),
+                                                          ),
+                                                        ]
+                                                            : null,
+                                                      ),
+                                                      child: Center(
+                                                        child: Text(
+                                                          '++',
+                                                          style: TextStyle(
+                                                            fontSize: 16,
+                                                            fontWeight: FontWeight.bold,
+                                                            color: amount == 2
+                                                                ? Colors.white
+                                                                : Colors.grey[600],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              Expanded(
+                                                child: Text(
+                                                  ingredient,
+                                                  style: const TextStyle(
+                                                    fontSize: 16,
+                                                    fontFamily: 'NotoSansArabic',
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                  textAlign: TextAlign.right,
+                                                ),
+                                              ),
+
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                  const SizedBox(height: 100),
+                                ],
+                              ),
                             ),
                           );
                         },
@@ -400,7 +414,7 @@ class _MealCustomizationPageState extends State<MealCustomizationPage> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(vertical: 14),
                                 decoration: BoxDecoration(
-                                  color: Colors.red[400],
+                                  color: Colors.red[500],
                                   borderRadius: BorderRadius.circular(20),
                                   boxShadow: [
                                     BoxShadow(

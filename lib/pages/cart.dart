@@ -1,3 +1,4 @@
+import 'package:app3/common/helpers/helper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -156,7 +157,7 @@ class _CartState extends State<Cart> with ScrollHelper {
                       return {
                         'id': doc.id,
                         'name': data['name'] ?? '',
-                        'price': data['price']?.toDouble() ?? 0.0,
+                        'price': Helpers.ParsePrice(data['price']),
                         'quantity': data['quantity'] ?? 1,
                         'image': data['image'] ?? 'images/meal.png',
                         'customizations': data['customizations'] ?? [],
@@ -362,7 +363,7 @@ class _CartState extends State<Cart> with ScrollHelper {
                                 children: [
                                   Flexible(
                                     child: Text(
-                                      '${item['price'].toStringAsFixed(3)} د.ت',
+                                      '${Helpers.formatPrice(item['price'])} DT',
                                       style: const TextStyle(
                                         color: Color.fromARGB(255, 161, 161, 161),
                                         fontFamily: "Poppins",
@@ -667,24 +668,27 @@ class _CartState extends State<Cart> with ScrollHelper {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('المجموع الفرعي:', style: TextStyle(fontFamily: 'NotoSansArabic', fontSize: 14)),
-                        Text('${subtotal.toStringAsFixed(3)} د.ت', style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, fontSize: 14)),
+                        Text('${subtotal.toStringAsFixed(3)} DT', style: const TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, fontSize: 14),textDirection: TextDirection.ltr,),
+                        const Text('المجموع الفرعي :', style: TextStyle(fontFamily: 'NotoSansArabic', fontSize: 14),textDirection: TextDirection.rtl,),
+
                       ],
                     ),
                     const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: const [
-                        Text('رسوم التوصيل:', style: TextStyle(fontFamily: 'NotoSansArabic', fontSize: 14)),
-                        Text('2.500 د.ت', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, fontSize: 14)),
+
+                        Text('2.500 DT', style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600, fontSize: 14),textDirection: TextDirection.ltr,),
+                        Text('رسوم التوصيل :', style: TextStyle(fontFamily: 'NotoSansArabic', fontSize: 14),textDirection: TextDirection.rtl,),
                       ],
                     ),
                     const Divider(height: 20, thickness: 1),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('المجموع الكلي:', style: TextStyle(fontSize: 16, fontFamily: 'NotoSansArabic', fontWeight: FontWeight.w700)),
-                        Text('${total.toStringAsFixed(3)} د.ت', style: const TextStyle(fontSize: 16, fontFamily: 'Poppins', fontWeight: FontWeight.w700)),
+                        Text('${total.toStringAsFixed(3)} DT', style: const TextStyle(fontSize: 16, fontFamily: 'Poppins', fontWeight: FontWeight.w700),textDirection: TextDirection.ltr,),
+                        const Text('المجموع الكلي :', style: TextStyle(fontSize: 16, fontFamily: 'NotoSansArabic', fontWeight: FontWeight.w700),textDirection: TextDirection.rtl,),
+
                       ],
                     ),
                   ],
